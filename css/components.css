@@ -1,0 +1,293 @@
+/* ===== Tombol ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px; /* target sentuh yang nyaman */
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, transform 0.05s;
+}
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary { background: var(--primary); color: var(--on-primary); }
+.btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+
+.btn-ghost { background: var(--surface); border-color: var(--border-strong); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-2); }
+
+.btn-danger { background: var(--danger); color: var(--on-danger); }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
+
+.btn-danger-ghost { background: var(--surface); border-color: var(--border-strong); color: var(--expense); }
+.btn-danger-ghost:hover:not(:disabled) { background: var(--expense-soft); }
+
+.btn-sm { min-height: 36px; padding: var(--space-1) var(--space-3); font-size: 0.875rem; }
+
+/* ===== Kartu ===== */
+.card {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.card__title { font-size: 1.1rem; margin-bottom: var(--space-3); }
+.card__title:focus { outline: none; }
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* ===== Ringkasan ===== */
+.stat {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.stat__label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.stat__value {
+  margin-top: var(--space-1);
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.stat--income .stat__value { color: var(--income); }
+.stat--expense .stat__value { color: var(--expense); }
+.stat__value.is-negative { color: var(--expense); }
+
+/* ===== Form ===== */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  border: 0;
+}
+.field__label { padding: 0; font-size: 0.9rem; font-weight: 600; }
+
+.field__input {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+textarea.field__input { min-height: 72px; resize: vertical; }
+.field__input:hover { border-color: var(--primary); }
+.field__input[aria-invalid="true"] { border-color: var(--expense); border-width: 2px; }
+
+.field__error { color: var(--expense); font-size: 0.85rem; font-weight: 600; }
+.field__error:empty { display: none; }
+
+.filters .field { margin-bottom: 0; }
+.form-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+/* Pilihan tipe (radio yang tampil seperti tombol) */
+.segmented { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.segmented__item { position: relative; display: block; }
+.segmented__item input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.segmented__item span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-weight: 600;
+}
+.segmented__item input:hover + span { background: var(--surface-2); }
+.segmented__item input:checked + span {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.segmented__item input:focus-visible + span {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ===== Menu Data ===== */
+.menu { position: relative; }
+.menu summary { list-style: none; }
+.menu summary::-webkit-details-marker { display: none; }
+.menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-1));
+  z-index: 50;
+  display: grid;
+  min-width: 240px;
+  padding: var(--space-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.menu__item {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+.menu__item:hover { background: var(--surface-2); }
+
+/* ===== Anggaran ===== */
+.budget-form { margin-top: var(--space-3); }
+.budget-empty { margin-top: var(--space-2); }
+
+.progress {
+  height: 14px;
+  margin-top: var(--space-3);
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.progress__bar {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+.progress__bar--ok { background: var(--income); }
+.progress__bar--warning { background: var(--warning); }
+.progress__bar--over { background: var(--expense); }
+
+.budget-text { margin-top: var(--space-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.alert {
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-left: 4px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+.alert--ok { background: var(--income-soft); border-color: var(--income); }
+.alert--warning { background: var(--warning-soft); border-color: var(--warning); }
+.alert--over { background: var(--expense-soft); border-color: var(--expense); }
+
+/* ===== Grafik ===== */
+.chart-wrap { width: 100%; }
+#chart-canvas { display: block; max-width: 100%; }
+
+/* ===== Daftar transaksi ===== */
+.tx-list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+
+.tx {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.tx:hover { box-shadow: var(--shadow); }
+.tx--income { border-left-color: var(--income); }
+.tx--expense { border-left-color: var(--expense); }
+
+.tx__title { font-weight: 600; overflow-wrap: anywhere; }
+.tx__meta, .tx__note { color: var(--text-muted); font-size: 0.875rem; overflow-wrap: anywhere; }
+.tx__amount {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.tx--income .tx__amount { color: var(--income); }
+.tx--expense .tx__amount { color: var(--expense); }
+.tx__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* ===== Empty state ===== */
+.empty {
+  padding: var(--space-6) var(--space-4);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-align: center;
+}
+.empty__icon { font-size: 2rem; }
+.empty__title { color: var(--text); font-weight: 700; }
+
+/* ===== Toast ===== */
+.toast-container {
+  position: fixed;
+  inset: auto var(--space-4) var(--space-4) var(--space-4);
+  z-index: 1000;
+  display: grid;
+  gap: var(--space-2);
+  justify-items: center;
+  pointer-events: none;
+}
+.toast {
+  max-width: min(440px, 100%);
+  padding: var(--space-3) var(--space-4);
+  border-left: 6px solid #8da2ff;
+  border-radius: var(--radius-sm);
+  background: var(--toast-bg);
+  color: #ffffff;
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+  animation: toast-in 0.2s ease-out;
+}
+.toast--success { border-left-color: #4ade80; }
+.toast--error { border-left-color: #ff8a80; }
+.toast--warning { border-left-color: #fbbf24; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Dialog konfirmasi ===== */
+.dialog {
+  max-width: min(420px, calc(100% - 2rem));
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.dialog::backdrop { background: rgba(10, 14, 25, 0.6); }
+.dialog__title { margin-bottom: var(--space-2); font-size: 1.15rem; }
+.dialog__actions { display: flex; justify-content: flex-end; gap: var(--space-2); margin-top: var(--space-5); }
+
+/* ===== Banner ===== */
+.banner { padding: var(--space-4); text-align: center; }
+.banner--error { border-bottom: 3px solid var(--expense); background: var(--expense-soft); }

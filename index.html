@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aplikasi pencatat keuangan sederhana untuk mahasiswa.">
+  <title>Dompet Kampus – Pencatat Keuangan Mahasiswa</title>
+
+  <script>
+    // Skrip klasik kecil (dibungkus IIFE agar tidak ada variabel global):
+    // 1) terapkan tema tersimpan sebelum CSS dirender supaya layar tidak berkedip,
+    // 2) tampilkan banner petunjuk bila modul ES gagal dimuat (mis. dibuka via file:// di Chrome).
+    (function () {
+      try {
+        var theme = JSON.parse(localStorage.getItem('dompetKampus.theme'));
+        if (theme === 'dark' || theme === 'light') {
+          document.documentElement.setAttribute('data-theme', theme);
+        } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) { /* abaikan: pakai tema default */ }
+
+      window.addEventListener('load', function () {
+        if (!document.documentElement.hasAttribute('data-app-ready')) {
+          var banner = document.getElementById('load-error');
+          if (banner) banner.hidden = false;
+        }
+      });
+    })();
+  </script>
+
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#konten">Lewati ke konten utama</a>
+
+  <div id="load-error" class="banner banner--error" role="alert" hidden>
+    <strong>Aplikasi gagal dimuat.</strong>
+    Browser (terutama Chrome/Edge) memblokir ES Modules saat <code>index.html</code> dibuka langsung lewat <code>file://</code>.
+    Jalankan server lokal: <code>python -m http.server 8080</code> lalu buka <code>http://localhost:8080</code>,
+    atau pakai ekstensi <em>Live Server</em> di VS Code.
+  </div>
+
+  <header class="app-header">
+    <div class="container app-header__inner">
+      <div>
+        <h1 class="app-title">Dompet Kampus</h1>
+        <p class="app-subtitle">Pencatat keuangan mahasiswa</p>
+      </div>
+
+      <div class="app-header__actions">
+        <button id="btn-theme" class="btn btn-ghost" type="button" aria-pressed="false">
+          <span id="theme-icon" aria-hidden="true">🌙</span>
+          <span id="theme-label">Mode gelap</span>
+        </button>
+
+        <details id="data-menu" class="menu">
+          <summary class="btn btn-ghost">Data ▾</summary>
+          <div class="menu__panel">
+            <button class="menu__item" type="button" data-menu-action="export-json">Ekspor data (JSON)</button>
+            <button class="menu__item" type="button" data-menu-action="export-csv">Ekspor CSV (sesuai filter)</button>
+            <button class="menu__item" type="button" data-menu-action="import-json">Impor data (JSON)</button>
+          </div>
+        </details>
+        <input id="import-file" type="file" accept="application/json,.json" hidden>
+      </div>
+    </div>
+  </header>
+
+  <main id="konten" class="container app-main" tabindex="-1">
+
+    <!-- Ringkasan -->
+    <section class="summary" aria-labelledby="judul-ringkasan">
+      <h2 id="judul-ringkasan" class="sr-only">Ringkasan keuangan</h2>
+      <p id="summary-scope" class="summary__scope"></p>
+      <div class="summary__grid">
+        <article class="stat stat--balance">
+          <h3 class="stat__label">Total saldo</h3>
+          <p id="sum-balance" class="stat__value">Rp0</p>
+        </article>
+        <article class="stat stat--income">
+          <h3 class="stat__label">Pemasukan</h3>
+          <p id="sum-income" class="stat__value">Rp0</p>
+        </article>
+        <article class="stat stat--expense">
+          <h3 class="stat__label">Pengeluaran</h3>
+          <p id="sum-expense" class="stat__value">Rp0</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="layout__side">
+
+        <!-- Form transaksi -->
+        <section class="card" aria-labelledby="form-title">
+          <h2 id="form-title" class="card__title">Tambah transaksi</h2>
+          <form id="transaction-form" novalidate>
+            <input type="hidden" id="tx-id" name="id">
+
+            <fieldset class="field">
+              <legend class="field__label">Tipe transaksi</legend>
+              <div class="segmented">
+                <label class="segmented__item">
+                  <input type="radio" name="type" value="expense" checked>
+                  <span>Pengeluaran</span>
+                </label>
+                <label class="segmented__item">
+                  <input type="radio" name="type" value="income">
+                  <span>Pemasukan</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="field">
+              <label class="field__label" for="tx-title">Judul</label>
+              <input class="field__input" id="tx-title" name="title" type="text" maxlength="60"
+                     autocomplete="off" placeholder="Contoh: Makan siang" aria-describedby="err-title">
+              <p class="field__error" id="err-title"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="tx-amount">Nominal (Rp)</label>
+              <input class="field__input" id="tx-amount" name="amount" type="number" inputmode="numeric"
+                     min="1" step="1" placeholder="Contoh: 15000" aria-describedby="err-amount">
+              <p class="field__error" id="err-amount"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="tx-category">Kategori</label>
+              <select class="field__input" id="tx-category" name="category" aria-describedby="err-category"></select>
+              <p class="field__error" id="err-category"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="tx-date">Tanggal</label>
+              <input class="field__input" id="tx-date" name="date" type="date" aria-describedby="err-date">
+              <p class="field__error" id="err-date"></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="tx-note">Catatan <span class="muted">(opsional)</span></label>
+              <textarea class="field__input" id="tx-note" name="note" rows="2" maxlength="200"
+                        aria-describedby="err-note"></textarea>
+              <p class="field__error" id="err-note"></p>
+            </div>
+
+            <div class="form-actions">
+              <button id="tx-submit" class="btn btn-primary" type="submit">Simpan transaksi</button>
+              <button id="tx-cancel" class="btn btn-ghost" type="button" hidden>Batal ubah</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Target anggaran -->
+        <section class="card" aria-labelledby="judul-anggaran">
+          <h2 id="judul-anggaran" class="card__title">Target anggaran bulanan</h2>
+          <p id="budget-month" class="muted"></p>
+
+          <form id="budget-form" class="budget-form" novalidate>
+            <div class="field">
+              <label class="field__label" for="budget-amount">Batas pengeluaran (Rp)</label>
+              <input class="field__input" id="budget-amount" type="number" inputmode="numeric"
+                     min="1" step="1" aria-describedby="err-budget-amount">
+              <p class="field__error" id="err-budget-amount"></p>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit">Simpan target</button>
+              <button id="btn-budget-clear" class="btn btn-ghost" type="button">Hapus target</button>
+            </div>
+          </form>
+
+          <p id="budget-empty" class="muted budget-empty">Belum ada target untuk bulan ini. Isi nominal di atas untuk memulai.</p>
+
+          <div id="budget-progress-wrap" hidden>
+            <div id="budget-progress" class="progress" role="progressbar" aria-label="Progres pengeluaran terhadap target"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div id="budget-bar" class="progress__bar"></div>
+            </div>
+            <p id="budget-text" class="budget-text"></p>
+            <p id="budget-alert" class="alert" role="status"></p>
+          </div>
+        </section>
+      </div>
+
+      <div class="layout__main">
+
+        <!-- Grafik -->
+        <section class="card" aria-labelledby="judul-grafik">
+          <h2 id="judul-grafik" class="card__title">Pengeluaran per kategori</h2>
+          <div id="chart-wrap" class="chart-wrap">
+            <canvas id="chart-canvas" role="img" aria-label="Grafik pengeluaran per kategori">
+              Grafik pengeluaran per kategori (browser Anda tidak mendukung canvas).
+            </canvas>
+            <div id="chart-empty" class="empty" hidden>
+              <p class="empty__icon" aria-hidden="true">📊</p>
+              <p class="empty__title">Belum ada data pengeluaran</p>
+              <p>Grafik muncul setelah kamu mencatat pengeluaran yang sesuai filter.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Daftar transaksi -->
+        <section class="card" aria-labelledby="judul-transaksi">
+          <div class="card__head">
+            <h2 id="judul-transaksi" class="card__title" tabindex="-1">Daftar transaksi</h2>
+            <p id="list-count" class="muted"></p>
+          </div>
+
+          <form id="filter-form" class="filters" novalidate>
+            <div class="field filters__search">
+              <label class="field__label" for="filter-search">Cari</label>
+              <input class="field__input" id="filter-search" name="search" type="search"
+                     placeholder="Judul, catatan, atau kategori" autocomplete="off">
+            </div>
+            <div class="field">
+              <label class="field__label" for="filter-month">Bulan</label>
+              <input class="field__input" id="filter-month" name="month" type="month">
+            </div>
+            <div class="field">
+              <label class="field__label" for="filter-category">Kategori</label>
+              <select class="field__input" id="filter-category" name="category"></select>
+            </div>
+            <div class="field">
+              <label class="field__label" for="filter-type">Tipe</label>
+              <select class="field__input" id="filter-type" name="type">
+                <option value="">Semua tipe</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field__label" for="filter-sort">Urutkan</label>
+              <select class="field__input" id="filter-sort" name="sort">
+                <option value="date-desc">Tanggal terbaru</option>
+                <option value="date-asc">Tanggal terlama</option>
+                <option value="amount-desc">Nominal terbesar</option>
+                <option value="amount-asc">Nominal terkecil</option>
+                <option value="title-asc">Judul A–Z</option>
+              </select>
+            </div>
+            <div class="filters__reset">
+              <button id="btn-reset-filters" class="btn btn-ghost" type="button">Reset filter</button>
+            </div>
+          </form>
+
+          <ul id="transaction-list" class="tx-list"></ul>
+
+          <div id="list-empty" class="empty" hidden>
+            <p class="empty__icon" aria-hidden="true">🗒️</p>
+            <p id="empty-title" class="empty__title"></p>
+            <p id="empty-text"></p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <footer class="container app-footer">
+    <p class="muted">Dompet Kampus · data tersimpan di browser kamu (localStorage), tidak dikirim ke mana pun.</p>
+  </footer>
+
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+  <dialog id="confirm-dialog" class="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-message">
+    <form method="dialog">
+      <h2 id="dialog-title" class="dialog__title"></h2>
+      <p id="dialog-message"></p>
+      <div class="dialog__actions">
+        <button class="btn btn-ghost" type="submit" value="cancel">Batal</button>
+        <button id="dialog-confirm" class="btn btn-danger" type="submit" value="confirm">Ya</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
